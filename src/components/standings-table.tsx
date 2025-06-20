@@ -53,6 +53,20 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
             Penalty = Time + (WA × 5) • WA1 ignored • Fixed penalty: 5 per WA
           </div>
         </div>
+        <div className="flex gap-4 text-xs text-gray-600 dark:text-gray-400 mt-2">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-green-600 rounded"></div>
+            <span>Solved</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-green-800 rounded"></div>
+            <span>First Solver</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-red-600 rounded"></div>
+            <span>Wrong Attempts</span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -119,13 +133,27 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                     const actualWACount =
                       rawWACount > 0 ? Math.max(0, rawWACount - 1) : 0;
 
+                    // Check if this participant is the first solver for this problem
+                    const problemIndex = standings.problems[index].index;
+                    const participantHandle =
+                      row.party.participantType === "CONTESTANT"
+                        ? row.party.members[0]?.handle
+                        : row.party.teamName || row.party.members[0]?.handle;
+                    const isFirstSolver =
+                      standings.firstSolvers?.[problemIndex] ===
+                      participantHandle;
+
                     return (
                       <td
                         key={index}
                         className="px-3 py-3 text-center border-r border-gray-100 dark:border-gray-700"
                       >
                         {result.points > 0 ? (
-                          <div className="bg-green-600 text-white text-xs font-bold py-1 px-2 rounded">
+                          <div
+                            className={`text-white text-xs font-bold py-1 px-2 rounded ${
+                              isFirstSolver ? "bg-green-800" : "bg-green-600"
+                            }`}
+                          >
                             <div>
                               {result.bestSubmissionTimeSeconds
                                 ? formatTime(result.bestSubmissionTimeSeconds)

@@ -80,10 +80,19 @@ export class CodeforcesService {
       row.rank = index + 1;
     });
 
+    // Get first solvers
+    const firstSolvers = await this.getFirstSolvers(
+      contestId,
+      groupId,
+      apiKey,
+      apiSecret
+    );
+
     return {
       contest: standings.contest,
       problems: standings.problems,
       rows: rowsWithCustomPenalty,
+      firstSolvers,
     };
   }
 
@@ -204,6 +213,54 @@ export class CodeforcesService {
       return true;
     } catch (error) {
       return false;
+    }
+  }
+
+  private async getFirstSolvers(
+    contestId: number,
+    groupId?: string,
+    apiKey?: string,
+    apiSecret?: string
+  ): Promise<{ [problemIndex: string]: string }> {
+    try {
+      const submissions = await this.getContestStatus(
+        contestId,
+        groupId,
+        apiKey,
+        apiSecret
+      );
+
+      // Track first accepted submission for each problem
+      const firstSolvers: { [problemIndex: string]: string } = {};
+      const firstSolveTimes: { [problemIndex: string]: number } = {};
+
+      submissions.forEach((submission: any) => {
+        // Only consider accepted submissions
+        if (submission.verdict === "OK") {
+          const problemIndex = submission.problem.index;
+          const submissionTime = submission.creationTimeSeconds;
+
+          // Get participant handle
+          const participantHandle =
+            submission.author.members?.[0]?.handle ||
+            submission.author.teamName ||
+            "Unknown";
+
+          // Check if this is the first accepted submission for this problem
+          if (
+            !firstSolveTimes[problemIndex] ||
+            submissionTime < firstSolveTimes[problemIndex]
+          ) {
+            firstSolveTimes[problemIndex] = submissionTime;
+            firstSolvers[problemIndex] = participantHandle;
+          }
+        }
+      });
+
+      return firstSolvers;
+    } catch (error) {
+      console.warn("Failed to fetch first solvers:", error);
+      return {};
     }
   }
 }
