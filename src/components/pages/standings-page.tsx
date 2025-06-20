@@ -97,7 +97,7 @@ function StandingsPage() {
         </div>
       </header>
       {/* Contest Info */}
-      {standings?.contest && <ContestInfo contest={standings.contest} />}
+      <ContestInfo contest={standings?.contest} />
     </>
   );
 }

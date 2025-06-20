@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, HourglassIcon } from "lucide-react";
 import { Contest } from "@/schema";
 import {
@@ -8,10 +9,35 @@ import {
 } from "@/lib/utils";
 
 interface ContestInfoProps {
-  contest: Contest;
+  contest?: Contest;
 }
 
 export function ContestInfo({ contest }: ContestInfoProps) {
+  if (!contest) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div className="flex-1">
+              <Skeleton className="h-6 w-64 mb-2" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-4">
+              <div className="flex items-center space-x-2">
+                <Skeleton className="w-4 h-4 rounded" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Skeleton className="w-4 h-4 rounded" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardContent className="p-6">
