@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { StandingsWithCustomPenalty } from "@/schema";
+import type { StandingsWithCustomPenalty } from "@/schema";
 import { RotateCw, Trophy, Users } from "lucide-react";
 import ModeToggle from "../mode-toggle";
 import { Skeleton } from "../ui/skeleton";
@@ -9,50 +9,63 @@ import { ContestInfo } from "../contest-info";
 import { StandingsTable } from "../standings-table";
 import { Button } from "../ui/button";
 
+// Extended type to include cache info
+type StandingsResponse = {
+  standings: StandingsWithCustomPenalty;
+  cacheInfo?: {
+    remainingTime: number;
+    lastUpdated: number;
+  };
+};
+
 function StandingsPage() {
   const [refreshTimer, setRefreshTimer] = useState(30);
+
   const {
-    data: standings,
+    data: standingsResponse,
     isLoading,
     isRefetching,
-    error,
     refetch,
-  } = useQuery<StandingsWithCustomPenalty>({
+  } = useQuery<StandingsResponse>({
     queryKey: ["/api/contest/standings"],
     queryFn: async () => {
       const url = `/api/contest/standings`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        // Disable browser cache to always get server response
+        cache: "no-store",
+      });
       if (!response.ok) throw new Error("Failed to fetch standings");
       return response.json();
     },
-    refetchInterval: 30000,
   });
+
+  // Extract standings data (without cache info)
+  const standings = standingsResponse?.standings;
+
+  // Update refresh timer when new data arrives
+  useEffect(() => {
+    if (standingsResponse?.cacheInfo?.remainingTime !== undefined) {
+      setRefreshTimer(standingsResponse.cacheInfo.remainingTime);
+    }
+  }, [standingsResponse?.cacheInfo?.remainingTime]);
+
+  // Timer countdown effect
   useEffect(() => {
     const interval = setInterval(() => {
       setRefreshTimer((prev) => {
         if (prev <= 1) {
-          return 30;
+          refetch();
+          return 30; // Reset to 30 when it reaches 0
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (standings) {
-      handleLoadContest();
-    }
-  }, [standings]);
-
-  const handleLoadContest = async () => {
-    setRefreshTimer(30);
-  };
+  }, [refetch]);
 
   const handleManualRefresh = () => {
     refetch();
-    handleLoadContest();
   };
 
   return (
@@ -85,6 +98,7 @@ function StandingsPage() {
                     </Button>
                     <span>Next refresh in {refreshTimer}s</span>
                   </div>
+
                   {standings && (
                     <div className="flex items-center space-x-2 text-sm">
                       <Users className="w-4 h-4" />
@@ -100,6 +114,7 @@ function StandingsPage() {
           </div>
         </div>
       </header>
+
       {/* Contest Info */}
       <ContestInfo contest={standings?.contest} />
 
