@@ -118,9 +118,6 @@ export class CodeforcesService {
         // Add WA penalty: 5 points per wrong attempt, excluding likely WA1
         // Since we can't determine exact test cases, assume WA1 if there are wrong attempts
         let wrongAttempts = result.rejectedAttemptCount || 0;
-        if (wrongAttempts > 0) {
-          wrongAttempts = Math.max(0, wrongAttempts - 1); // Exclude presumed WA1
-        }
         customPenalty += wrongAttempts * 5;
       }
     });

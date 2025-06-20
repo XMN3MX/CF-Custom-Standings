@@ -135,7 +135,7 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                     // Show corrected WA count (excluding presumed WA1) to match penalty calculation
                     const rawWACount = result.rejectedAttemptCount || 0;
                     const actualWACount =
-                      rawWACount > 0 ? Math.max(0, rawWACount - 1) : 0;
+                      rawWACount > 0 ? Math.max(0, rawWACount) : 0;
 
                     // Check if this participant is the first solver for this problem
                     const problemIndex = standings.problems[index].index;
