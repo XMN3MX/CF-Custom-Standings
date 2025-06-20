@@ -96,10 +96,14 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
               </tr>
             </thead>
             <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
-              {standings.rows.map((row) => (
+              {standings.rows.map((row, rowIndex) => (
                 <tr
                   key={`${row.party.contestId}-${row.party.members[0]?.handle}`}
-                  className="hover:bg-[var(--accent)] transition-colors"
+                  className={`transition-colors ${
+                    rowIndex % 2 === 0
+                      ? "bg-card hover:bg-accent"
+                      : "bg-muted hover:bg-accent"
+                  } hover:bg-accent`}
                 >
                   <td className="px-4 py-3 text-sm font-medium text-[var(--card-foreground)] border-r border-[var(--border)]">
                     {row.rank}
