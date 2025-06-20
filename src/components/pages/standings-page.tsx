@@ -6,6 +6,7 @@ import { RotateCw, Trophy, Users } from "lucide-react";
 import ModeToggle from "../mode-toggle";
 import { Skeleton } from "../ui/skeleton";
 import { ContestInfo } from "../contest-info";
+import { StandingsTable } from "../standings-table";
 
 function StandingsPage() {
   const [refreshTimer, setRefreshTimer] = useState(30);
@@ -54,7 +55,7 @@ function StandingsPage() {
   };
 
   return (
-    <>
+    <div className="flex flex-col gap-5">
       {/* Header */}
       <header className="border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -98,7 +99,12 @@ function StandingsPage() {
       </header>
       {/* Contest Info */}
       <ContestInfo contest={standings?.contest} />
-    </>
+
+      <StandingsTable
+        isLoading={isLoading || isRefetching}
+        standings={standings}
+      />
+    </div>
   );
 }
 
