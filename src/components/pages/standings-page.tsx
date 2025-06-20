@@ -49,51 +49,24 @@ function StandingsPage() {
     }
   }, [standingsResponse?.cacheInfo?.remainingTime]);
 
-  // Helper to get seconds until next :00 or :30 using UTC
-  function getSecondsToNextHalfMinuteUTC() {
-    const now = new Date();
-    const seconds = now.getUTCSeconds();
-    if (seconds < 30) {
-      return 30 - seconds;
-    } else {
-      return 60 - seconds;
-    }
-  }
-
+  // Timer countdown effect
   useEffect(() => {
-    if (!standings?.contest) return;
-
-    const start = standings.contest.startTimeSeconds * 1000; // ms
-    const end = (standings.contest.startTimeSeconds + standings.contest.durationSeconds) * 1000; // ms
-    const afterEnd = end + 60 * 60 * 1000; // 1 hour after end
-    const now = Date.now();
-
-    // Only run timer if now is between start and afterEnd
-    if (now < start || now >= afterEnd) {
-      setRefreshTimer(0);
-      return;
-    }
-
-    setRefreshTimer(getSecondsToNextHalfMinuteUTC());
-
     const interval = setInterval(() => {
-      const now = Date.now();
-      if (now < start || now >= afterEnd) {
-        setRefreshTimer(0);
-        clearInterval(interval);
-        return;
-      }
       setRefreshTimer((prev) => {
         if (prev <= 1) {
           refetch();
-          return getSecondsToNextHalfMinuteUTC();
+          return 30; // Reset to 30 when it reaches 0
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [refetch, standings?.contest]);
+  }, [refetch]);
+
+  const handleManualRefresh = () => {
+    refetch();
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -111,8 +84,21 @@ function StandingsPage() {
               {!isLoading ? (
                 <>
                   <div className="flex items-center space-x-2 text-sm">
+                    <Button
+                      disabled={isRefetching}
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleManualRefresh}
+                    >
+                      <RotateCw
+                        className={`w-4 h-4 text-[var(--solved)] cursor-pointer ${
+                          isRefetching ? "animate-spin" : ""
+                        }`}
+                      />
+                    </Button>
                     <span>Next refresh in {refreshTimer}s</span>
                   </div>
+
                   {standings && (
                     <div className="flex items-center space-x-2 text-sm">
                       <Users className="w-4 h-4" />
