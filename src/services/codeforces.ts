@@ -137,9 +137,8 @@ export class CodeforcesService {
       }
     });
 
-    // Get first solvers
-    const firstSolvers = await this.getFirstSolvers();
-    console.log("First solver for A:", firstSolvers["A"]);
+    // Get first solvers (pass submissions to avoid extra request)
+    const firstSolvers = this.getFirstSolvers(submissions);
 
     return {
       contest: standings.contest,
@@ -250,46 +249,40 @@ export class CodeforcesService {
     }
   }
 
-  private async getFirstSolvers(): Promise<{ [problemIndex: string]: string }> {
-    try {
-      const submissions = await this.getContestStatus();
+  // Accept submissions as a parameter to avoid extra API call
+  private getFirstSolvers(submissions: Submission[]): { [problemIndex: string]: string } {
+    // Track first accepted submission for each problem using relativeTimeSeconds
+    const firstSolvers: { [problemIndex: string]: string } = {};
+    const firstSolveTimes: { [problemIndex: string]: number } = {};
 
-      // Track first accepted submission for each problem using relativeTimeSeconds
-      const firstSolvers: { [problemIndex: string]: string } = {};
-      const firstSolveTimes: { [problemIndex: string]: number } = {};
+    submissions.forEach((submission: Submission) => {
+      // Only consider accepted submissions
+      if (submission.verdict === "OK") {
+        const problemIndex = submission.problem.index;
+        // Use relativeTimeSeconds instead of creationTimeSeconds
+        const submissionTime = submission.relativeTimeSeconds;
 
-      submissions.forEach((submission: Submission) => {
-        // Only consider accepted submissions
-        if (submission.verdict === "OK") {
-          const problemIndex = submission.problem.index;
-          // Use relativeTimeSeconds instead of creationTimeSeconds
-          const submissionTime = submission.relativeTimeSeconds;
+        // Get participant handle
+        const participantHandle =
+          submission.author.members?.[0]?.handle ||
+          submission.author.teamName ||
+          "Unknown";
 
-          // Get participant handle
-          const participantHandle =
-            submission.author.members?.[0]?.handle ||
-            submission.author.teamName ||
-            "Unknown";
-
-          // Check if this is the first accepted submission for this problem
-          if (
-            !firstSolveTimes[problemIndex] ||
-            submissionTime < firstSolveTimes[problemIndex]
-          ) {
-            firstSolveTimes[problemIndex] = submissionTime;
-            firstSolvers[problemIndex] = participantHandle;
-          }
+        // Check if this is the first accepted submission for this problem
+        if (
+          !firstSolveTimes[problemIndex] ||
+          submissionTime < firstSolveTimes[problemIndex]
+        ) {
+          firstSolveTimes[problemIndex] = submissionTime;
+          firstSolvers[problemIndex] = participantHandle;
         }
-      });
+      }
+    });
 
-      // Debug log: print all first solvers and their relative times
-      console.log("First solvers and relative times:", Object.entries(firstSolvers).map(([problem, handle]) => ({ problem, handle, time: firstSolveTimes[problem] })));
+    // Debug log: print all first solvers and their relative times
+    console.log("First solvers and relative times:", Object.entries(firstSolvers).map(([problem, handle]) => ({ problem, handle, time: firstSolveTimes[problem] })));
 
-      return firstSolvers;
-    } catch (error) {
-      console.warn("Failed to fetch first solvers:", error);
-      return {};
-    }
+    return firstSolvers;
   }
 }
 
