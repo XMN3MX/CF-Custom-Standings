@@ -4,6 +4,7 @@ import {
   StandingsRowWithCustomPenalty,
   ProblemResult,
   Submission,
+  Problem,
 } from "@/schema";
 import { createHash } from "crypto";
 
@@ -61,11 +62,44 @@ export class CodeforcesService {
 
     const standings: Standings = data.result;
 
+    // Fetch all submissions to build ignored wrongs map
+    const submissions = await this.getContestStatus();
+    // Map: { [userHandle]: { [problemIndex]: ignoredWrongCount } }
+    const ignoredWrongsMap: Record<string, Record<string, number>> = {};
+    submissions.forEach((submission: Submission) => {
+      if (
+        submission.verdict === "WRONG_ANSWER" &&
+        submission.passedTestCount === 0
+      ) {
+        // Get participant handle
+        const participantHandle =
+          submission.author.members?.[0]?.handle ||
+          submission.author.teamName ||
+          "Unknown";
+        const problemIndex = submission.problem.index;
+        if (!ignoredWrongsMap[participantHandle]) {
+          ignoredWrongsMap[participantHandle] = {};
+        }
+        if (!ignoredWrongsMap[participantHandle][problemIndex]) {
+          ignoredWrongsMap[participantHandle][problemIndex] = 0;
+        }
+        ignoredWrongsMap[participantHandle][problemIndex] += 1;
+      }
+    });
+
     // Calculate custom penalty for each row
     const rowsWithCustomPenalty: StandingsRowWithCustomPenalty[] =
       standings.rows.map((row) => {
+        // Get handle for this row
+        const participantHandle =
+          row.party.members?.[0]?.handle ||
+          row.party.teamName ||
+          "Unknown";
+        const ignoredWrongsForUser = ignoredWrongsMap[participantHandle] || {};
         const { customPenalty, solvedCount } = this.calculateCustomPenalty(
-          row.problemResults
+          row.problemResults,
+          standings.problems,
+          ignoredWrongsForUser
         );
 
         return {
@@ -99,14 +133,18 @@ export class CodeforcesService {
     };
   }
 
-  private calculateCustomPenalty(problemResults: ProblemResult[]): {
+  private calculateCustomPenalty(
+    problemResults: ProblemResult[],
+    problems: Problem[],
+    ignoredWrongsForUser: Record<string, number>
+  ): {
     customPenalty: number;
     solvedCount: number;
   } {
     let customPenalty = 0;
     let solvedCount = 0;
 
-    problemResults.forEach((result) => {
+    problemResults.forEach((result, idx) => {
       if (result.points > 0) {
         solvedCount++;
 
@@ -115,9 +153,13 @@ export class CodeforcesService {
           customPenalty += Math.floor(result.bestSubmissionTimeSeconds / 60);
         }
 
-        // Add WA penalty: 5 points per wrong attempt, excluding likely WA1
-        // Since we can't determine exact test cases, assume WA1 if there are wrong attempts
+        // Subtract ignored wrongs for this problem
+        const problemIndex = problems[idx]?.index;
         let wrongAttempts = result.rejectedAttemptCount || 0;
+        if (problemIndex && ignoredWrongsForUser[problemIndex]) {
+          wrongAttempts -= ignoredWrongsForUser[problemIndex];
+          if (wrongAttempts < 0) wrongAttempts = 0;
+        }
         customPenalty += wrongAttempts * 5;
       }
     });
