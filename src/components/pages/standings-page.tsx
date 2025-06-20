@@ -63,7 +63,7 @@ function StandingsPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold">
-                <Trophy className="inline w-6 h-6 text-[var(--chart-4)] mr-2" />
+                <Trophy className="inline w-6 h-6 text-yellow-500 mr-2" />
                 CF Gym Custom Standings
               </h1>
             </div>
