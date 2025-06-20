@@ -7,22 +7,28 @@ import { createHash } from "crypto";
 
 export class CodeforcesService {
   private baseUrl = "https://codeforces.com/api";
+  private apiKey: string | undefined;
+  private apiSecret: string | undefined;
+  private groupId: string | undefined;
+  private contestId: number;
 
-  async getContestStandings(
-    contestId: number,
-    groupId?: string,
-    apiKey?: string,
-    apiSecret?: string
-  ): Promise<StandingsWithCustomPenalty> {
-    let url = `${this.baseUrl}/contest.standings?contestId=${contestId}&from=1&count=10000`;
+  constructor() {
+    this.apiKey = process.env.API_KEY;
+    this.apiSecret = process.env.API_SECRET;
+    this.groupId = process.env.GROUP_ID;
+    this.contestId = Number(process.env.CONTEST_ID);
+  }
 
-    if (groupId) {
-      url += `&groupId=${groupId}`;
+  async getContestStandings(): Promise<StandingsWithCustomPenalty> {
+    let url = `${this.baseUrl}/contest.standings?contestId=${this.contestId}&from=1&count=10000`;
+
+    if (this.groupId) {
+      url += `&groupId=${this.groupId}`;
     }
 
     // Add authentication if provided
-    if (apiKey && apiSecret) {
-      url = this.signRequest(url, apiKey, apiSecret);
+    if (this.apiKey && this.apiSecret) {
+      url = this.signRequest(url, this.apiKey, this.apiSecret);
     }
 
     const response = await fetch(url);
@@ -30,7 +36,7 @@ export class CodeforcesService {
     if (!response.ok) {
       if (response.status === 403) {
         throw new Error(
-          `Contest ${contestId} is private or requires authentication. For mashup/private contests, you need to provide the group ID or the contest must be public.`
+          `Contest ${this.contestId} is private or requires authentication. For mashup/private contests, you need to provide the group ID or the contest must be public.`
         );
       }
       throw new Error(
@@ -43,7 +49,7 @@ export class CodeforcesService {
     if (data.status !== "OK") {
       if (data.comment && data.comment.includes("contestId")) {
         throw new Error(
-          `Contest ${contestId} not found or is private. For mashup contests, try using the group ID if available, or make sure the contest is accessible.`
+          `Contest ${this.contestId} not found or is private. For mashup contests, try using the group ID if available, or make sure the contest is accessible.`
         );
       }
       throw new Error(
@@ -81,12 +87,7 @@ export class CodeforcesService {
     });
 
     // Get first solvers
-    const firstSolvers = await this.getFirstSolvers(
-      contestId,
-      groupId,
-      apiKey,
-      apiSecret
-    );
+    const firstSolvers = await this.getFirstSolvers();
 
     return {
       contest: standings.contest,
@@ -164,21 +165,16 @@ export class CodeforcesService {
     return `${urlObj.origin}${urlObj.pathname}?${params.toString()}`;
   }
 
-  async getContestStatus(
-    contestId: number,
-    groupId?: string,
-    apiKey?: string,
-    apiSecret?: string
-  ): Promise<any> {
+  async getContestStatus(): Promise<any> {
     try {
-      let url = `${this.baseUrl}/contest.status?contestId=${contestId}`;
+      let url = `${this.baseUrl}/contest.status?contestId=${this.contestId}`;
 
-      if (groupId) {
-        url += `&groupId=${groupId}`;
+      if (this.groupId) {
+        url += `&groupId=${this.groupId}`;
       }
 
-      if (apiKey && apiSecret) {
-        url = this.signRequest(url, apiKey, apiSecret);
+      if (this.apiKey && this.apiSecret) {
+        url = this.signRequest(url, this.apiKey, this.apiSecret);
       }
 
       const response = await fetch(url);
@@ -202,33 +198,18 @@ export class CodeforcesService {
     }
   }
 
-  async checkContestExists(
-    contestId: number,
-    groupId?: string,
-    apiKey?: string,
-    apiSecret?: string
-  ): Promise<boolean> {
+  async checkContestExists(): Promise<boolean> {
     try {
-      await this.getContestStandings(contestId, groupId, apiKey, apiSecret);
+      await this.getContestStandings();
       return true;
     } catch (error) {
       return false;
     }
   }
 
-  private async getFirstSolvers(
-    contestId: number,
-    groupId?: string,
-    apiKey?: string,
-    apiSecret?: string
-  ): Promise<{ [problemIndex: string]: string }> {
+  private async getFirstSolvers(): Promise<{ [problemIndex: string]: string }> {
     try {
-      const submissions = await this.getContestStatus(
-        contestId,
-        groupId,
-        apiKey,
-        apiSecret
-      );
+      const submissions = await this.getContestStatus();
 
       // Track first accepted submission for each problem
       const firstSolvers: { [problemIndex: string]: string } = {};
