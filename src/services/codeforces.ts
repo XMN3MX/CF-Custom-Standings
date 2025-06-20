@@ -279,9 +279,6 @@ export class CodeforcesService {
       }
     });
 
-    // Debug log: print all first solvers and their relative times
-    console.log("First solvers and relative times:", Object.entries(firstSolvers).map(([problem, handle]) => ({ problem, handle, time: firstSolveTimes[problem] })));
-
     return firstSolvers;
   }
 }
