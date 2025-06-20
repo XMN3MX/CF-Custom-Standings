@@ -100,10 +100,7 @@ function StandingsPage() {
       {/* Contest Info */}
       <ContestInfo contest={standings?.contest} />
 
-      <StandingsTable
-        isLoading={isLoading || isRefetching}
-        standings={standings}
-      />
+      <StandingsTable isLoading={isLoading} standings={standings} />
     </div>
   );
 }
