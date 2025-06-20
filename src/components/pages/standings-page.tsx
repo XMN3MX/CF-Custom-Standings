@@ -7,6 +7,7 @@ import ModeToggle from "../mode-toggle";
 import { Skeleton } from "../ui/skeleton";
 import { ContestInfo } from "../contest-info";
 import { StandingsTable } from "../standings-table";
+import { Button } from "../ui/button";
 
 function StandingsPage() {
   const [refreshTimer, setRefreshTimer] = useState(30);
@@ -70,8 +71,10 @@ function StandingsPage() {
               {!isLoading ? (
                 <>
                   <div className="flex items-center space-x-2 text-sm">
-                    <button
+                    <Button
                       disabled={isRefetching}
+                      variant="ghost"
+                      size="icon"
                       onClick={handleManualRefresh}
                     >
                       <RotateCw
@@ -79,7 +82,7 @@ function StandingsPage() {
                           isRefetching ? "animate-spin" : ""
                         }`}
                       />
-                    </button>
+                    </Button>
                     <span>Next refresh in {refreshTimer}s</span>
                   </div>
                   {standings && (
