@@ -2,6 +2,8 @@ import {
   Standings,
   StandingsWithCustomPenalty,
   StandingsRowWithCustomPenalty,
+  ProblemResult,
+  Submission,
 } from "@/schema";
 import { createHash } from "crypto";
 
@@ -97,7 +99,7 @@ export class CodeforcesService {
     };
   }
 
-  private calculateCustomPenalty(problemResults: any[]): {
+  private calculateCustomPenalty(problemResults: ProblemResult[]): {
     customPenalty: number;
     solvedCount: number;
   } {
@@ -165,7 +167,7 @@ export class CodeforcesService {
     return `${urlObj.origin}${urlObj.pathname}?${params.toString()}`;
   }
 
-  async getContestStatus(): Promise<any> {
+  async getContestStatus(): Promise<Submission[]> {
     try {
       let url = `${this.baseUrl}/contest.status?contestId=${this.contestId}`;
 
@@ -187,7 +189,7 @@ export class CodeforcesService {
         throw new Error(`API Error: ${data.comment || "Unknown error"}`);
       }
 
-      return data.result; // Returns array of submissions
+      return data.result;
     } catch (error) {
       console.error("Error fetching contest status:", error);
       throw new Error(
@@ -195,15 +197,6 @@ export class CodeforcesService {
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
-    }
-  }
-
-  async checkContestExists(): Promise<boolean> {
-    try {
-      await this.getContestStandings();
-      return true;
-    } catch (error) {
-      return false;
     }
   }
 
@@ -215,7 +208,7 @@ export class CodeforcesService {
       const firstSolvers: { [problemIndex: string]: string } = {};
       const firstSolveTimes: { [problemIndex: string]: number } = {};
 
-      submissions.forEach((submission: any) => {
+      submissions.forEach((submission: Submission) => {
         // Only consider accepted submissions
         if (submission.verdict === "OK") {
           const problemIndex = submission.problem.index;

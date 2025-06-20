@@ -75,6 +75,22 @@ export const authRequestSchema = z.object({
   apiSecret: z.string(),
 });
 
+export const submissionSchema = z.object({
+  id: z.number(),
+  contestId: z.number(),
+  creationTimeSeconds: z.number(),
+  relativeTimeSeconds: z.number(),
+  problem: problemSchema,
+  author: partySchema,
+  programmingLanguage: z.string(),
+  verdict: z.string().nullable().optional(),
+  testset: z.string(),
+  passedTestCount: z.number(),
+  timeConsumedMillis: z.number(),
+  memoryConsumedBytes: z.number(),
+  points: z.number().nullable().optional(),
+});
+
 export type Contest = z.infer<typeof contestSchema>;
 export type Problem = z.infer<typeof problemSchema>;
 export type Member = z.infer<typeof memberSchema>;
@@ -83,6 +99,7 @@ export type ProblemResult = z.infer<typeof problemResultSchema>;
 export type RanklistRow = z.infer<typeof ranklistRowSchema>;
 export type Standings = z.infer<typeof standingsSchema>;
 export type ContestRequest = z.infer<typeof contestRequestSchema>;
+export type Submission = z.infer<typeof submissionSchema>;
 
 export interface StandingsRowWithCustomPenalty extends RanklistRow {
   customPenalty: number;
