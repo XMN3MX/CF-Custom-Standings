@@ -124,9 +124,17 @@ export class CodeforcesService {
       return a.customPenalty - b.customPenalty;
     });
 
-    // Update ranks based on custom sorting
+    // Update ranks based on custom sorting (competition ranking style)
     rowsWithCustomPenalty.forEach((row, index) => {
-      row.rank = index + 1;
+      if (
+        index > 0 &&
+        row.solvedCount === rowsWithCustomPenalty[index - 1].solvedCount &&
+        row.customPenalty === rowsWithCustomPenalty[index - 1].customPenalty
+      ) {
+        row.rank = rowsWithCustomPenalty[index - 1].rank;
+      } else {
+        row.rank = index + 1;
+      }
     });
 
     // Get first solvers
