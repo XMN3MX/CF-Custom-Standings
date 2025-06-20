@@ -122,13 +122,6 @@ export class CodeforcesService {
           wrongAttempts = Math.max(0, wrongAttempts - 1); // Exclude presumed WA1
         }
         customPenalty += wrongAttempts * 5;
-      } else {
-        // For unsolved problems, also exclude presumed WA1
-        let wrongAttempts = result.rejectedAttemptCount || 0;
-        if (wrongAttempts > 0) {
-          wrongAttempts = Math.max(0, wrongAttempts - 1); // Exclude presumed WA1
-        }
-        customPenalty += wrongAttempts * 5;
       }
     });
 
