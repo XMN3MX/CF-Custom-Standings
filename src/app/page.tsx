@@ -1,9 +1,7 @@
-import Navbar from "@/components/ui/navbar";
+import StandingsPage from "@/components/pages/standings-page";
 
 export default function Home() {
   return (
-    <div className="px-1 sm:px-10 md:px-20">
-      <Navbar />
-    </div>
+    <StandingsPage/>
   );
 }
