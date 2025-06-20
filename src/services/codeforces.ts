@@ -139,6 +139,7 @@ export class CodeforcesService {
 
     // Get first solvers
     const firstSolvers = await this.getFirstSolvers();
+    console.log("First solver for A:", firstSolvers["A"]);
 
     return {
       contest: standings.contest,
@@ -253,7 +254,7 @@ export class CodeforcesService {
     try {
       const submissions = await this.getContestStatus();
 
-      // Track first accepted submission for each problem
+      // Track first accepted submission for each problem using relativeTimeSeconds
       const firstSolvers: { [problemIndex: string]: string } = {};
       const firstSolveTimes: { [problemIndex: string]: number } = {};
 
@@ -261,7 +262,8 @@ export class CodeforcesService {
         // Only consider accepted submissions
         if (submission.verdict === "OK") {
           const problemIndex = submission.problem.index;
-          const submissionTime = submission.creationTimeSeconds;
+          // Use relativeTimeSeconds instead of creationTimeSeconds
+          const submissionTime = submission.relativeTimeSeconds;
 
           // Get participant handle
           const participantHandle =
@@ -279,6 +281,9 @@ export class CodeforcesService {
           }
         }
       });
+
+      // Debug log: print all first solvers and their relative times
+      console.log("First solvers and relative times:", Object.entries(firstSolvers).map(([problem, handle]) => ({ problem, handle, time: firstSolveTimes[problem] })));
 
       return firstSolvers;
     } catch (error) {
