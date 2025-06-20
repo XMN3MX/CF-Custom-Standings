@@ -55,15 +55,15 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
         </div>
         <div className="flex gap-4 text-xs text-gray-600 dark:text-gray-400 mt-2">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-600 rounded"></div>
+            <div className="w-4 h-4 bg-[var(--solved)] rounded"></div>
             <span>Solved</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-800 rounded"></div>
+            <div className="w-4 h-4 bg-[var(--first-solver)] rounded"></div>
             <span>First Solver</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-600 rounded"></div>
+            <div className="w-4 h-4 bg-[var(--wrong-attempt)] rounded"></div>
             <span>Wrong Attempts</span>
           </div>
         </div>
@@ -150,8 +150,10 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                       >
                         {result.points > 0 ? (
                           <div
-                            className={`text-white text-xs font-bold py-1 px-2 rounded ${
-                              isFirstSolver ? "bg-green-800" : "bg-green-600"
+                            className={`text-[var(--solved-foreground)] text-xs font-bold py-1 px-2 rounded ${
+                              isFirstSolver
+                                ? "bg-[var(--first-solver)] text-[var(--first-solver-foreground)]"
+                                : "bg-[var(--solved)]"
                             }`}
                           >
                             <div>
@@ -166,7 +168,7 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                             )}
                           </div>
                         ) : actualWACount > 0 ? (
-                          <div className="bg-red-600 text-white text-xs font-bold py-1 px-2 rounded">
+                          <div className="bg-[var(--wrong-attempt)] text-[var(--wrong-attempt-foreground)] text-xs font-bold py-1 px-2 rounded">
                             <div>-{actualWACount}</div>
                           </div>
                         ) : (
