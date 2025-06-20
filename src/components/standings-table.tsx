@@ -36,7 +36,7 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
           <CardTitle>Standings</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-[var(--muted-foreground)]">
             Select a contest to view standings
           </div>
         </CardContent>
@@ -49,11 +49,11 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>Standings - All Participants</CardTitle>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-[var(--muted-foreground)]">
             Penalty = Time + (WA × 5) • WA1 ignored • Fixed penalty: 5 per WA
           </div>
         </div>
-        <div className="flex gap-4 text-xs text-gray-600 dark:text-gray-400 mt-2">
+        <div className="flex gap-4 text-xs text-[var(--muted-foreground)] mt-2">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-[var(--solved)] rounded"></div>
             <span>Solved</span>
@@ -71,60 +71,60 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0">
-              <tr className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                <th className="px-4 py-3 text-left border-r border-gray-200 dark:border-gray-700 w-16">
+            <thead className="bg-[var(--muted)] sticky top-0">
+              <tr className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">
+                <th className="px-4 py-3 text-left border-r border-[var(--border)] w-16">
                   #
                 </th>
-                <th className="px-4 py-3 text-left border-r border-gray-200 dark:border-gray-700 min-w-48">
+                <th className="px-4 py-3 text-left border-r border-[var(--border)] min-w-48">
                   Participant
                 </th>
-                <th className="px-4 py-3 text-center border-r border-gray-200 dark:border-gray-700 w-20">
+                <th className="px-4 py-3 text-center border-r border-[var(--border)] w-20">
                   =
                 </th>
-                <th className="px-4 py-3 text-center border-r border-gray-200 dark:border-gray-700 w-24">
+                <th className="px-4 py-3 text-center border-r border-[var(--border)] w-24">
                   Penalty
                 </th>
                 {standings.problems.map((problem) => (
                   <th
                     key={problem.index}
-                    className="px-3 py-3 text-center border-r border-gray-200 dark:border-gray-700 w-20 font-bold"
+                    className="px-3 py-3 text-center border-r border-[var(--border)] w-20 font-bold"
                   >
                     {problem.index}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-[var(--card)] divide-y divide-[var(--border)]">
               {standings.rows.map((row) => (
                 <tr
                   key={`${row.party.contestId}-${row.party.members[0]?.handle}`}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="hover:bg-[var(--accent)] transition-colors"
                 >
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100 border-r border-gray-100 dark:border-gray-700">
+                  <td className="px-4 py-3 text-sm font-medium text-[var(--card-foreground)] border-r border-[var(--border)]">
                     {row.rank}
                   </td>
-                  <td className="px-4 py-3 border-r border-gray-100 dark:border-gray-700">
+                  <td className="px-4 py-3 border-r border-[var(--border)]">
                     <div className="flex items-center">
                       <div className="ml-3">
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <div className="text-sm font-medium text-[var(--card-foreground)]">
                           {row.party.participantType === "CONTESTANT"
                             ? row.party.members[0]?.handle
                             : row.party.teamName ||
                               row.party.members[0]?.handle}
                         </div>
                         {row.party.members[0]?.city && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                          <div className="text-xs text-[var(--muted-foreground)]">
                             {row.party.members[0].city}
                           </div>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-center font-semibold border-r border-gray-100 dark:border-gray-700">
+                  <td className="px-4 py-3 text-sm text-center font-semibold border-r border-[var(--border)]">
                     {row.solvedCount}
                   </td>
-                  <td className="px-4 py-3 text-sm text-center font-mono border-r border-gray-100 dark:border-gray-700">
+                  <td className="px-4 py-3 text-sm text-center font-mono border-r border-[var(--border)]">
                     {row.customPenalty}
                   </td>
                   {row.problemResults.map((result, index) => {
@@ -146,7 +146,7 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                     return (
                       <td
                         key={index}
-                        className="px-3 py-3 text-center border-r border-gray-100 dark:border-gray-700"
+                        className="px-3 py-3 text-center border-r border-[var(--border)]"
                       >
                         {result.points > 0 ? (
                           <div
@@ -172,7 +172,7 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                             <div>-{actualWACount}</div>
                           </div>
                         ) : (
-                          <div className="text-gray-400 dark:text-gray-500">
+                          <div className="text-[var(--muted-foreground)]">
                             -
                           </div>
                         )}

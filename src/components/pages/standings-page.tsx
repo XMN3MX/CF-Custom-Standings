@@ -58,12 +58,12 @@ function StandingsPage() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-800">
+      <header className="border-b border-[var(--border)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold">
-                <Trophy className="inline w-6 h-6 text-yellow-500 mr-2" />
+                <Trophy className="inline w-6 h-6 text-[var(--chart-4)] mr-2" />
                 CF Gym Custom Standings
               </h1>
             </div>
@@ -78,7 +78,7 @@ function StandingsPage() {
                       onClick={handleManualRefresh}
                     >
                       <RotateCw
-                        className={`w-4 h-4 text-green-600 dark:text-green-400 cursor-pointer ${
+                        className={`w-4 h-4 text-[var(--solved)] cursor-pointer ${
                           isRefetching ? "animate-spin" : ""
                         }`}
                       />
