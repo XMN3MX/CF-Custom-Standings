@@ -132,10 +132,11 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                     {row.customPenalty}
                   </td>
                   {row.problemResults.map((result, index) => {
-                    // Show corrected WA count (excluding presumed WA1) to match penalty calculation
-                    const rawWACount = result.rejectedAttemptCount || 0;
-                    const actualWACount =
-                      rawWACount > 0 ? Math.max(0, rawWACount) : 0;
+                    // Use the actual wrong attempt count as used in backend penalty calculation
+                    // If the backend does not provide the adjusted value, fallback to rejectedAttemptCount
+                    const actualWACount = result.actualWACount !== undefined
+                      ? result.actualWACount
+                      : result.rejectedAttemptCount || 0;
 
                     // Check if this participant is the first solver for this problem
                     const problemIndex = standings.problems[index].index;

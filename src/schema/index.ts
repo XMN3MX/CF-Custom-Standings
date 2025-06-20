@@ -101,9 +101,14 @@ export type Standings = z.infer<typeof standingsSchema>;
 export type ContestRequest = z.infer<typeof contestRequestSchema>;
 export type Submission = z.infer<typeof submissionSchema>;
 
+export interface ProblemResultWithActualWA extends ProblemResult {
+  actualWACount: number;
+}
+
 export interface StandingsRowWithCustomPenalty extends RanklistRow {
   customPenalty: number;
   solvedCount: number;
+  problemResults: ProblemResultWithActualWA[];
 }
 
 export interface StandingsWithCustomPenalty {

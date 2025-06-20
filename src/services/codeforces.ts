@@ -96,16 +96,23 @@ export class CodeforcesService {
           row.party.teamName ||
           "Unknown";
         const ignoredWrongsForUser = ignoredWrongsMap[participantHandle] || {};
-        const { customPenalty, solvedCount } = this.calculateCustomPenalty(
+        const { customPenalty, solvedCount, actualWACounts } = this.calculateCustomPenalty(
           row.problemResults,
           standings.problems,
           ignoredWrongsForUser
         );
 
+        // Add actualWACount to each problemResult
+        const problemResultsWithActualWA = row.problemResults.map((pr, idx) => ({
+          ...pr,
+          actualWACount: actualWACounts[idx],
+        }));
+
         return {
           ...row,
           customPenalty,
           solvedCount,
+          problemResults: problemResultsWithActualWA,
         };
       });
 
@@ -140,11 +147,21 @@ export class CodeforcesService {
   ): {
     customPenalty: number;
     solvedCount: number;
+    actualWACounts: number[];
   } {
     let customPenalty = 0;
     let solvedCount = 0;
+    const actualWACounts: number[] = [];
 
     problemResults.forEach((result, idx) => {
+      let actualWA = result.rejectedAttemptCount || 0;
+      const problemIndex = problems[idx]?.index;
+      if (problemIndex && ignoredWrongsForUser[problemIndex]) {
+        actualWA -= ignoredWrongsForUser[problemIndex];
+        if (actualWA < 0) actualWA = 0;
+      }
+      actualWACounts.push(actualWA);
+
       if (result.points > 0) {
         solvedCount++;
 
@@ -152,19 +169,11 @@ export class CodeforcesService {
         if (result.bestSubmissionTimeSeconds) {
           customPenalty += Math.floor(result.bestSubmissionTimeSeconds / 60);
         }
-
-        // Subtract ignored wrongs for this problem
-        const problemIndex = problems[idx]?.index;
-        let wrongAttempts = result.rejectedAttemptCount || 0;
-        if (problemIndex && ignoredWrongsForUser[problemIndex]) {
-          wrongAttempts -= ignoredWrongsForUser[problemIndex];
-          if (wrongAttempts < 0) wrongAttempts = 0;
-        }
-        customPenalty += wrongAttempts * 5;
+        customPenalty += actualWA * 5;
       }
     });
 
-    return { customPenalty, solvedCount };
+    return { customPenalty, solvedCount, actualWACounts };
   }
 
   private signRequest(url: string, apiKey: string, apiSecret: string): string {
