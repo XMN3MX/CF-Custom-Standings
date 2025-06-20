@@ -5,6 +5,7 @@ import { StandingsWithCustomPenalty } from "@/schema";
 import { RotateCw, Trophy, Users } from "lucide-react";
 import ModeToggle from "../mode-toggle";
 import { Skeleton } from "../ui/skeleton";
+import { ContestInfo } from "../contest-info";
 
 function StandingsPage() {
   const [refreshTimer, setRefreshTimer] = useState(30);
@@ -39,12 +40,17 @@ function StandingsPage() {
 
   useEffect(() => {
     if (standings) {
-      setRefreshTimer(30);
+      handleLoadContest();
     }
   }, [standings]);
+
+  const handleLoadContest = async () => {
+    setRefreshTimer(30);
+  };
+
   const handleManualRefresh = () => {
     refetch();
-    setRefreshTimer(30);
+    handleLoadContest();
   };
 
   return (
@@ -90,6 +96,8 @@ function StandingsPage() {
           </div>
         </div>
       </header>
+      {/* Contest Info */}
+      {standings?.contest && <ContestInfo contest={standings.contest} />}
     </>
   );
 }
