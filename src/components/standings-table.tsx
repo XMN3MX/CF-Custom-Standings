@@ -184,6 +184,54 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                   })}
                 </tr>
               ))}
+              {/* Accepted/Tried Summary Rows */}
+              <tr
+                className={`transition-colors ${
+                  standings.rows.length % 2 === 0
+                    ? "bg-card hover:bg-accent"
+                    : "bg-muted hover:bg-accent"
+                }`}
+              >
+                <td className="border-r border-border"></td>
+                <td className="px-4 py-1 text-xs font-medium text-left border-r border-border">
+                  <div className="ml-3">
+                    <div className="flex flex-col leading-tight">
+                      <span className="text-green-600 dark:text-green-400">
+                        Accepted
+                      </span>
+                      <span className="text-muted-foreground">Tried</span>
+                    </div>
+                  </div>
+                </td>
+                <td className="border-r border-border"></td>
+                <td className="border-r border-border"></td>
+                {standings.problems.map((_, problemIndex) => {
+                  const acceptedCount = standings.rows.filter(
+                    (row) => row.problemResults[problemIndex]?.points > 0
+                  ).length;
+                  const triedCount = standings.rows.filter(
+                    (row) =>
+                      (row.problemResults[problemIndex]?.rejectedAttemptCount ??
+                        0) > 0 ||
+                      (row.problemResults[problemIndex]?.points ?? 0) > 0
+                  ).length;
+                  return (
+                    <td
+                      key={problemIndex}
+                      className="px-3 py-1 text-center border-r border-border"
+                    >
+                      <div className="flex flex-col text-xs leading-tight">
+                        <span className="text-green-600 dark:text-green-400">
+                          {acceptedCount}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {triedCount}
+                        </span>
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
             </tbody>
           </table>
         </div>
