@@ -15,6 +15,37 @@ export function formatDuration(seconds: number): string {
   return `${hours}:${minutes.toString().padStart(2, "0")}`;
 }
 
+export function formatDurationHMS(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  let str = "";
+  if (h > 0) str += `${h}h `;
+  if (m > 0 || h > 0) str += `${m}m `;
+  str += `${s}s`;
+  return str.trim();
+}
+
+export function getContestStatusAndTime(
+  startTimeSeconds: number,
+  durationSeconds: number
+): string {
+  const now = Math.floor(Date.now() / 1000);
+  const endTime = startTimeSeconds + durationSeconds;
+  if (now < startTimeSeconds) {
+    // Before contest
+    const diff = startTimeSeconds - now;
+    return `Starting in ${formatDurationHMS(diff)}`;
+  } else if (now >= startTimeSeconds && now < endTime) {
+    // During contest
+    const left = endTime - now;
+    return `Running, ${formatDurationHMS(left)} left`;
+  } else {
+    // After contest
+    return "Ended";
+  }
+}
+
 export function getTimeAgo(startTimeSeconds: number): string {
   const now = Math.floor(Date.now() / 1000);
   const diff = now - startTimeSeconds;

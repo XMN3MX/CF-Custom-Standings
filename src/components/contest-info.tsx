@@ -6,6 +6,7 @@ import {
   formatDuration,
   getTimeAgo,
   getContestPhaseDisplay,
+  getContestStatusAndTime,
 } from "@/lib/utils";
 
 interface ContestInfoProps {
@@ -53,15 +54,9 @@ export function ContestInfo({ contest }: ContestInfoProps) {
           </div>
           <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-4 text-sm">
             <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <span className="text-gray-700 dark:text-gray-300">
-                {getTimeAgo(contest.startTimeSeconds)}
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
               <HourglassIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               <span className="text-gray-700 dark:text-gray-300">
-                {getContestPhaseDisplay(contest.phase)}
+                {getContestStatusAndTime(contest.startTimeSeconds, contest.durationSeconds)}
               </span>
             </div>
           </div>
