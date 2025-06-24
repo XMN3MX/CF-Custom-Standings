@@ -2,12 +2,11 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { StandingsWithCustomPenalty } from "@/schema";
-import { RotateCw, Trophy, Users } from "lucide-react";
+import { Trophy, Users } from "lucide-react";
 import ModeToggle from "../mode-toggle";
 import { Skeleton } from "../ui/skeleton";
 import { ContestInfo } from "../contest-info";
 import { StandingsTable } from "../standings-table";
-import { Button } from "../ui/button";
 
 // Extended type to include cache info
 type StandingsResponse = {
@@ -64,10 +63,6 @@ function StandingsPage() {
     return () => clearInterval(interval);
   }, [refetch]);
 
-  const handleManualRefresh = () => {
-    refetch();
-  };
-
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
@@ -84,19 +79,11 @@ function StandingsPage() {
               {!isLoading ? (
                 <>
                   <div className="flex items-center space-x-2 text-sm">
-                    <Button
-                      disabled={isRefetching}
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleManualRefresh}
-                    >
-                      <RotateCw
-                        className={`w-4 h-4 text-[var(--solved)] cursor-pointer ${
-                          isRefetching ? "animate-spin" : ""
-                        }`}
-                      />
-                    </Button>
-                    <span>Next refresh in {refreshTimer}s</span>
+                    <span>
+                      {isRefetching
+                        ? "Refreshing..."
+                        : `Next refresh in ${refreshTimer}s`}
+                    </span>
                   </div>
 
                   {standings && (
