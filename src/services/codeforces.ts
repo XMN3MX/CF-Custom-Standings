@@ -42,6 +42,21 @@ export class CodeforcesService {
           `Contest ${this.contestId} is private or requires authentication. For mashup/private contests, you need to provide the group ID or the contest must be public.`
         );
       }
+      if (response.status === 400) {
+        // Contest hasn't started yet, return minimal object
+        return {
+          contest: {
+            id: this.contestId,
+            name: "HFC #4 TESTING",
+            type: "ICPC",
+            phase: "BEFORE",
+            durationSeconds: 7200,
+            startTimeSeconds: 0,
+          },
+          problems: [],
+          rows: [],
+        };
+      }
       throw new Error(
         `Failed to fetch contest data: ${response.status} ${response.statusText}`
       );
