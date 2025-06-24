@@ -67,37 +67,35 @@ function StandingsPage() {
     <div className="flex flex-col gap-5">
       {/* Header */}
       <header className="border-b border-[var(--border)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold">
-                <Trophy className="inline w-6 h-6 text-yellow-500 mr-2" />
-                Standings
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              {!isLoading ? (
-                <>
-                  <div className="flex items-center space-x-2 text-sm">
-                    <span>
-                      {isRefetching
-                        ? "Refreshing..."
-                        : `Next refresh in ${refreshTimer}s`}
-                    </span>
-                  </div>
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-2xl font-bold">
+              <Trophy className="inline w-6 h-6 text-yellow-500 mr-2" />
+              Standings
+            </h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            {!isLoading ? (
+              <>
+                <div className="flex items-center space-x-2 text-sm">
+                  <span>
+                    {isRefetching
+                      ? "Refreshing..."
+                      : `Next refresh in ${refreshTimer}s`}
+                  </span>
+                </div>
 
-                  {standings && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Users className="w-4 h-4" />
-                      <span>{standings.rows?.length} participants</span>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <Skeleton className="w-60 h-10" />
-              )}
-              <ModeToggle />
-            </div>
+                {standings && (
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Users className="w-4 h-4" />
+                    <span>{standings.rows?.length} participants</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <Skeleton className="w-60 h-10" />
+            )}
+            <ModeToggle />
           </div>
         </div>
       </header>
