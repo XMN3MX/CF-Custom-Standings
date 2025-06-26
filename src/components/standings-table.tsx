@@ -3,6 +3,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StandingsWithCustomPenalty } from "@/schema";
 import { formatTime } from "@/lib/utils";
 
+const PROBLEM_LETTERS = (process.env.NEXT_PUBLIC_CONTEST_PROBLEMS || process.env.CONTEST_PROBLEMS || '').split(',').filter(Boolean);
+
 interface StandingsTableProps {
   standings?: StandingsWithCustomPenalty | null;
   isLoading: boolean;
@@ -48,7 +50,9 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>Standings - All Participants</CardTitle>
+          <CardTitle>
+            Standings - All Participants
+          </CardTitle>
           <div className="text-sm text-muted-foreground">
             Penalty = Time + (WA × 5) • WA1 ignored • Fixed penalty: 5 per WA
           </div>
@@ -85,12 +89,16 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                 <th className="px-4 py-3 text-center border-r border-border w-24">
                   Penalty
                 </th>
-                {standings.problems.map((problem) => (
+                {(
+                  standings.problems.length > 0
+                    ? standings.problems.map((problem) => problem.index)
+                    : PROBLEM_LETTERS
+                ).map((letter) => (
                   <th
-                    key={problem.index}
+                    key={letter}
                     className="px-3 py-3 text-center border-r border-border w-20 font-bold"
                   >
-                    {problem.index}
+                    {letter}
                   </th>
                 ))}
               </tr>

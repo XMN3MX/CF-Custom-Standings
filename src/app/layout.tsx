@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Codeforces custom standings",
+  title: "Standings",
   description: "Codeforces custom standings",
 };
 

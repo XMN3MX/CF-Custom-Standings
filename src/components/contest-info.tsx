@@ -1,13 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Clock, HourglassIcon } from "lucide-react";
+import { HourglassIcon } from "lucide-react";
 import { Contest } from "@/schema";
-import {
-  formatDuration,
-  getTimeAgo,
-  getContestPhaseDisplay,
-  getContestStatusAndTime,
-} from "@/lib/utils";
+import { formatDuration, getContestStatusAndTime } from "@/lib/utils";
 
 interface ContestInfoProps {
   contest?: Contest;
@@ -56,7 +51,10 @@ export function ContestInfo({ contest }: ContestInfoProps) {
             <div className="flex items-center space-x-2">
               <HourglassIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               <span className="text-gray-700 dark:text-gray-300">
-                {getContestStatusAndTime(contest.startTimeSeconds, contest.durationSeconds)}
+                {getContestStatusAndTime(
+                  contest.startTimeSeconds,
+                  contest.durationSeconds
+                )}
               </span>
             </div>
           </div>
