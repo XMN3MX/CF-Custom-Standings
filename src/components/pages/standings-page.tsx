@@ -49,7 +49,7 @@ function StandingsPage() {
     if (remainingTime !== undefined) {
       setRefreshTimer(remainingTime > 0 ? remainingTime : 30);
     }
-  }, [standingsResponse?.cacheInfo?.remainingTime]);
+  }, [standingsResponse]);
 
   useEffect(() => {
     const interval = setInterval(() => {
