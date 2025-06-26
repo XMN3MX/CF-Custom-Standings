@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { HourglassIcon } from "lucide-react";
 import { Contest } from "@/schema";
 import { formatDuration, getContestStatusAndTime } from "@/lib/utils";
+import Image from "next/image";
 
 interface ContestInfoProps {
   contest?: Contest;
@@ -39,9 +40,12 @@ export function ContestInfo({ contest }: ContestInfoProps) {
       <CardContent className="p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {contest.name}
-            </h2>
+            <div className="flex items-center gap-3">
+              <Image src="/logo.png" alt="Logo" width={25} height={25} />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                {contest.name}
+              </h2>
+            </div>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
               {contest.type} - Contest • Duration:{" "}
               {formatDuration(contest.durationSeconds)}
