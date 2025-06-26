@@ -24,44 +24,40 @@ function StandingsPage() {
     data: standingsResponse,
     isLoading,
     isRefetching,
-    refetch,
   } = useQuery<StandingsResponse>({
     queryKey: ["/api/contest/standings"],
     queryFn: async () => {
       const url = `/api/contest/standings`;
       const response = await fetch(url, {
-        // Disable browser cache to always get server response
         cache: "no-store",
       });
       if (!response.ok) throw new Error("Failed to fetch standings");
       return response.json();
     },
+    refetchInterval: (query) => {
+      const data = query?.state?.data as StandingsResponse | undefined;
+      const remainingTime = data?.cacheInfo?.remainingTime;
+      return remainingTime && remainingTime > 0 ? remainingTime * 1000 : 30000;
+    },
+    refetchIntervalInBackground: true,
   });
 
-  // Extract standings data (without cache info)
   const standings = standingsResponse?.standings;
 
-  // Update refresh timer when new data arrives
   useEffect(() => {
-    if (standingsResponse?.cacheInfo?.remainingTime !== undefined) {
-      setRefreshTimer(standingsResponse.cacheInfo.remainingTime);
+    const remainingTime = standingsResponse?.cacheInfo?.remainingTime;
+    if (remainingTime !== undefined) {
+      setRefreshTimer(remainingTime > 0 ? remainingTime : 30);
     }
   }, [standingsResponse?.cacheInfo?.remainingTime]);
 
-  // Timer countdown effect
   useEffect(() => {
     const interval = setInterval(() => {
-      setRefreshTimer((prev) => {
-        if (prev <= 1) {
-          refetch();
-          return 30; // Reset to 30 when it reaches 0
-        }
-        return prev - 1;
-      });
+      setRefreshTimer((prev) => Math.max(0, prev - 1));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [refetch]);
+  }, [standingsResponse]);
 
   return (
     <div className="flex flex-col gap-5">
