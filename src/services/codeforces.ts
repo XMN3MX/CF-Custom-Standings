@@ -44,6 +44,18 @@ export class CodeforcesService {
       };
     }
 
+    // Filter out submissions made after the contest ended
+    const contestEndTimeSeconds = contest.durationSeconds;
+    const validSubmissions = submissions.filter(submission => 
+      submission.relativeTimeSeconds <= contestEndTimeSeconds
+    );
+
+    // Log filtering information
+    const filteredCount = submissions.length - validSubmissions.length;
+    if (filteredCount > 0) {
+      console.log(`Filtered out ${filteredCount} submissions made after contest end (${contestEndTimeSeconds} seconds)`);
+    }
+
     // Always use the problem letters from env variable for problems array
     const PROBLEM_LETTERS = (process.env.CONTEST_PROBLEMS || '').split(',').filter(Boolean);
     const problems: Problem[] = PROBLEM_LETTERS.map((letter) => ({
@@ -56,7 +68,7 @@ export class CodeforcesService {
 
     // 3. Build participants set from submissions (only official contestants)
     const participantMap: Record<string, { handle: string; teamName?: string, participantType: string }> = {};
-    submissions.forEach((sub) => {
+    validSubmissions.forEach((sub) => {
       const handle = sub.author.members?.[0]?.handle || sub.author.teamName || "Unknown";
       const participantType = sub.author.participantType;
       if (participantType !== "CONTESTANT") return; // Only include official contestants
@@ -72,7 +84,7 @@ export class CodeforcesService {
 
     // Build ignoredWrongsMap: { [userHandle]: { [problemIndex]: ignoredWrongCount } }
     const ignoredWrongsMap: Record<string, Record<string, number>> = {};
-    submissions.forEach((submission: Submission) => {
+    validSubmissions.forEach((submission: Submission) => {
       if (
         submission.verdict === "WRONG_ANSWER" &&
         submission.passedTestCount === 0
@@ -96,7 +108,7 @@ export class CodeforcesService {
     const rows: StandingsRowWithCustomPenalty[] = participants.map((participant) => {
       const problemResults: ProblemResult[] = problems.map((problem) => {
         // All submissions for this participant and problem
-        const subs = submissions.filter(
+        const subs = validSubmissions.filter(
           (s) =>
             (s.author.members?.[0]?.handle || s.author.teamName || "Unknown") === participant.handle &&
             s.problem.index === problem.index
@@ -176,7 +188,7 @@ export class CodeforcesService {
     });
 
     // 6. Get first solvers
-    const firstSolvers = this.getFirstSolvers(submissions);
+    const firstSolvers = this.getFirstSolvers(validSubmissions);
 
     return {
       contest,
