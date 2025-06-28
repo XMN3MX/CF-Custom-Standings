@@ -10,7 +10,7 @@ import { StandingsTable } from "../standings-table";
 
 // Extended type to include cache info
 type StandingsResponse = {
-  standings: StandingsWithCustomPenalty;
+  standings: StandingsWithCustomPenalty; 
   cacheInfo?: {
     remainingTime: number;
     lastUpdated: number;
