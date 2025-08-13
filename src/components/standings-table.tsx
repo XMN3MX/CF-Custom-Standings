@@ -124,6 +124,11 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                             ? row.party.members[0]?.handle
                             : row.party.teamName ||
                               row.party.members[0]?.handle}
+                          {(row.party.participantType === "VIRTUAL" || row.party.participantType === "PRACTICE") && (
+                            <span className="ml-0.5 text-xs text-blue-600 relative -top-0.5">
+                              #
+                            </span>
+                          )}
                         </div>
                         {row.party.members[0]?.city && (
                           <div className="text-xs text-muted-foreground">
@@ -192,10 +197,83 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                   })}
                 </tr>
               ))}
+              
+              {/* Out of Competition Section */}
+              {standings.outOfCompetitionRows && standings.outOfCompetitionRows.map((row, rowIndex) => (
+                <tr
+                  key={`out-${row.party.contestId}-${row.party.members[0]?.handle}`}
+                  className={`transition-colors ${
+                    (standings.rows.length + rowIndex) % 2 === 0
+                      ? "bg-card hover:bg-accent"
+                      : "bg-muted hover:bg-accent"
+                  }`}
+                >
+                  <td className="px-4 py-3 text-sm font-medium text-card-foreground border-r border-border">
+                    
+                  </td>
+                  <td className="px-4 py-3 border-r border-border">
+                    <div className="flex items-center">
+                      <div className="ml-3">
+                        <div className="text-sm font-medium text-card-foreground">
+                          {row.party.participantType === "CONTESTANT"
+                            ? row.party.members[0]?.handle
+                            : row.party.teamName ||
+                              row.party.members[0]?.handle}
+                          
+                        </div>
+                        {row.party.members[0]?.city && (
+                          <div className="text-xs text-muted-foreground">
+                            {row.party.members[0].city}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center font-semibold border-r border-border">
+                    {row.solvedCount}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center font-mono border-r border-border">
+                    
+                  </td>
+                  {row.problemResults.map((result, index) => {
+                    const actualWACount = result.actualWACount !== undefined
+                      ? result.actualWACount
+                      : result.rejectedAttemptCount || 0;
+
+                    const problemIndex = standings.problems[index].index;
+                    const participantHandle =
+                      row.party.participantType === "CONTESTANT"
+                        ? row.party.members[0]?.handle
+                        : row.party.teamName || row.party.members[0]?.handle;
+
+                    return (
+                      <td
+                        key={index}
+                        className="px-3 py-3 text-center border-r border-border"
+                      >
+                        {result.points > 0 ? (
+                          <div className="bg-solved text-solved-foreground text-xs font-bold py-1 px-2 rounded">
+                            <div>
+                              {actualWACount === 0 ? '+' : '+' + (actualWACount + 1)}
+                            </div>
+                          </div>
+                        ) : actualWACount > 0 ? (
+                          <div className="bg-wrong-attempt text-wrong-attempt-foreground text-xs font-bold py-1 px-2 rounded">
+                            <div>-{actualWACount}</div>
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground">-</div>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+              
               {/* Accepted/Tried Summary Rows */}
               <tr
                 className={`transition-colors ${
-                  standings.rows.length % 2 === 0
+                  (standings.rows.length + (standings.outOfCompetitionRows?.length || 0)) % 2 === 0
                     ? "bg-card hover:bg-accent"
                     : "bg-muted hover:bg-accent"
                 }`}
@@ -214,10 +292,11 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                 <td className="border-r border-border"></td>
                 <td className="border-r border-border"></td>
                 {standings.problems.map((_, problemIndex) => {
-                  const acceptedCount = standings.rows.filter(
+                  const allRows = [...standings.rows, ...(standings.outOfCompetitionRows || [])];
+                  const acceptedCount = allRows.filter(
                     (row) => row.problemResults[problemIndex]?.points > 0
                   ).length;
-                  const triedCount = standings.rows.filter(
+                  const triedCount = allRows.filter(
                     (row) =>
                       (row.problemResults[problemIndex]?.rejectedAttemptCount ??
                         0) > 0 ||

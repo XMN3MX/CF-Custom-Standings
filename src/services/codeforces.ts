@@ -44,17 +44,16 @@ export class CodeforcesService {
       };
     }
 
-    // Filter out submissions made after the contest ended
-    const contestEndTimeSeconds = contest.durationSeconds;
-    const validSubmissions = submissions.filter(submission => 
-      submission.relativeTimeSeconds <= contestEndTimeSeconds
+    // Filter out submissions that occur after contest end
+    const contestEndTime = contest.startTimeSeconds + contest.durationSeconds;
+    const validSubmissions = submissions.filter(
+      (submission) => submission.relativeTimeSeconds <= contest.durationSeconds
     );
-
-    // Log filtering information
-    const filteredCount = submissions.length - validSubmissions.length;
-    if (filteredCount > 0) {
-      console.log(`Filtered out ${filteredCount} submissions made after contest end (${contestEndTimeSeconds} seconds)`);
-    }
+    
+    // Get submissions after contest end for "out of competition" participants
+    const outOfCompetitionSubmissions = submissions.filter(
+      (submission) => submission.relativeTimeSeconds > contest.durationSeconds
+    );
 
     // Always use the problem letters from env variable for problems array
     const PROBLEM_LETTERS = (process.env.CONTEST_PROBLEMS || '').split(',').filter(Boolean);
@@ -66,12 +65,13 @@ export class CodeforcesService {
       tags: [],
     }));
 
-    // 3. Build participants set from submissions (only official contestants)
+    // 3. Build participants set from submissions (include official and virtual contestants)
     const participantMap: Record<string, { handle: string; teamName?: string, participantType: string }> = {};
     validSubmissions.forEach((sub) => {
       const handle = sub.author.members?.[0]?.handle || sub.author.teamName || "Unknown";
       const participantType = sub.author.participantType;
-      if (participantType !== "CONTESTANT") return; // Only include official contestants
+      // Include both official contestants and virtual contestants
+      if (participantType !== "CONTESTANT" && participantType !== "VIRTUAL" && participantType !== "PRACTICE") return;
       if (!participantMap[handle]) {
         participantMap[handle] = {
           handle,
@@ -190,10 +190,123 @@ export class CodeforcesService {
     // 6. Get first solvers
     const firstSolvers = this.getFirstSolvers(validSubmissions);
 
+    // 7. Process out of competition participants
+    const outOfCompetitionRows: StandingsRowWithCustomPenalty[] = [];
+    if (outOfCompetitionSubmissions.length > 0) {
+      // Build out of competition participants set
+      const outOfCompetitionMap: Record<string, { handle: string; teamName?: string, participantType: string }> = {};
+      outOfCompetitionSubmissions.forEach((sub) => {
+        const handle = sub.author.members?.[0]?.handle || sub.author.teamName || "Unknown";
+        const participantType = sub.author.participantType;
+        if (!outOfCompetitionMap[handle]) {
+          outOfCompetitionMap[handle] = {
+            handle,
+            teamName: sub.author.teamName,
+            participantType,
+          };
+        }
+      });
+      const outOfCompetitionParticipants = Object.values(outOfCompetitionMap);
+
+      // Build ignoredWrongsMap for out of competition
+      const outOfCompetitionIgnoredWrongsMap: Record<string, Record<string, number>> = {};
+      outOfCompetitionSubmissions.forEach((submission: Submission) => {
+        if (
+          submission.verdict === "WRONG_ANSWER" &&
+          submission.passedTestCount === 0
+        ) {
+          const participantHandle =
+            submission.author.members?.[0]?.handle ||
+            submission.author.teamName ||
+            "Unknown";
+          const problemIndex = submission.problem.index;
+          if (!outOfCompetitionIgnoredWrongsMap[participantHandle]) {
+            outOfCompetitionIgnoredWrongsMap[participantHandle] = {};
+          }
+          if (!outOfCompetitionIgnoredWrongsMap[participantHandle][problemIndex]) {
+            outOfCompetitionIgnoredWrongsMap[participantHandle][problemIndex] = 0;
+          }
+          outOfCompetitionIgnoredWrongsMap[participantHandle][problemIndex] += 1;
+        }
+      });
+
+      // Build rows for out of competition participants
+      outOfCompetitionRows.push(...outOfCompetitionParticipants.map((participant) => {
+        const problemResults: ProblemResult[] = problems.map((problem) => {
+          const subs = outOfCompetitionSubmissions.filter(
+            (s) =>
+              (s.author.members?.[0]?.handle || s.author.teamName || "Unknown") === participant.handle &&
+              s.problem.index === problem.index
+          );
+          subs.sort((a, b) => a.relativeTimeSeconds - b.relativeTimeSeconds);
+          let rejectedAttemptCount = 0;
+          let bestSubmissionTimeSeconds: number | undefined = undefined;
+          let points = 0;
+          for (const sub of subs) {
+            if (sub.verdict === "OK") {
+              points = 1;
+              bestSubmissionTimeSeconds = sub.relativeTimeSeconds;
+              break;
+            } else if (sub.verdict === "WRONG_ANSWER") {
+              rejectedAttemptCount++;
+            }
+          }
+          return {
+            type: "PROGRAMMING",
+            points,
+            rejectedAttemptCount,
+            penalty: 0,
+            bestSubmissionTimeSeconds,
+          };
+        });
+
+        const ignoredWrongsForUser = outOfCompetitionIgnoredWrongsMap[participant.handle] || {};
+        const { customPenalty, solvedCount, actualWACounts } = this.calculateCustomPenalty(
+          problemResults,
+          problems,
+          ignoredWrongsForUser
+        );
+
+        const problemResultsWithActualWA = problemResults.map((pr, idx) => ({
+          ...pr,
+          actualWACount: actualWACounts[idx],
+        }));
+
+        const totalPoints = problemResults.reduce((acc, pr) => acc + (pr.points || 0), 0);
+        const totalPenalty = problemResults.reduce((acc, pr) => acc + (pr.penalty || 0), 0);
+
+        return {
+          party: {
+            members: [{ handle: participant.handle }],
+            teamName: participant.teamName,
+            participantType: participant.participantType,
+            ghost: false,
+          },
+          rank: 0, // No rank for out of competition
+          points: totalPoints,
+          penalty: totalPenalty,
+          successfulHackCount: 0,
+          unsuccessfulHackCount: 0,
+          problemResults: problemResultsWithActualWA,
+          customPenalty,
+          solvedCount,
+        };
+      }));
+
+      // Sort out of competition rows by solved count (no ranking)
+      outOfCompetitionRows.sort((a, b) => {
+        if (a.solvedCount !== b.solvedCount) {
+          return b.solvedCount - a.solvedCount;
+        }
+        return a.customPenalty - b.customPenalty;
+      });
+    }
+
     return {
       contest,
       problems,
       rows,
+      outOfCompetitionRows,
       firstSolvers,
     };
   }
@@ -305,7 +418,8 @@ export class CodeforcesService {
     const firstSolvers: { [problemIndex: string]: string } = {};
     const firstSolveTimes: { [problemIndex: string]: number } = {};
     submissions.forEach((submission: Submission) => {
-      if (submission.verdict === "OK") {
+      // Only consider official contestants for first solver calculation
+      if (submission.verdict === "OK" && submission.author.participantType === "CONTESTANT") {
         const problemIndex = submission.problem.index;
         const submissionTime = submission.relativeTimeSeconds;
         const participantHandle =

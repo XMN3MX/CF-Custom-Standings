@@ -401,7 +401,7 @@ function generateHTML(standings) {
                             <td class="rank">${row.rank}</td>
                             <td class="participant">${row.party.participantType === "CONTESTANT" 
                                 ? row.party.members[0]?.handle 
-                                : row.party.teamName || row.party.members[0]?.handle}</td>
+                                : row.party.teamName || row.party.members[0]?.handle}${(row.party.participantType === "VIRTUAL" || row.party.participantType === "PRACTICE") ? ' <span style="color: #2563eb; font-size: 0.75rem; margin-left: 0.5rem; cursor: pointer;">#</span>' : ''}</td>
                             <td class="solved-count">${row.solvedCount}</td>
                             <td class="penalty">${row.customPenalty || row.penalty}</td>
                             ${row.problemResults.map((result, index) => {
@@ -440,11 +440,46 @@ function generateHTML(standings) {
                         </tr>
                     `).join('')}
                     
+                    ${standings.outOfCompetitionRows ? standings.outOfCompetitionRows.map(row => `
+                        <tr>
+                            <td class="rank"></td>
+                            <td class="participant">${row.party.participantType === "CONTESTANT" 
+                                ? row.party.members[0]?.handle 
+                                : row.party.teamName || row.party.members[0]?.handle}</td>
+                            <td class="solved-count">${row.solvedCount}</td>
+                            <td class="penalty"></td>
+                            ${row.problemResults.map((result, index) => {
+                                const rejectedAttemptCount = result.rejectedAttemptCount || 0;
+                                
+                                if (result.points > 0) {
+                                    return `
+                                        <td class="problem-cell">
+                                            <div class="problem-solved">
+                                                <div class="time">${rejectedAttemptCount === 0 ? '+' : `+${rejectedAttemptCount + 1}`}</div>
+                                            </div>
+                                        </td>
+                                    `;
+                                } else if (rejectedAttemptCount > 0) {
+                                    return `
+                                        <td class="problem-cell">
+                                            <div class="problem-wrong">
+                                                <div>-${rejectedAttemptCount}</div>
+                                            </div>
+                                        </td>
+                                    `;
+                                } else {
+                                    return `<td class="problem-cell"><span class="problem-empty">-</span></td>`;
+                                }
+                            }).join('')}
+                        </tr>
+                    `).join('') : ''}
+                    
                     <!-- Summary rows -->
                     <tr class="summary-row">
                         <td colspan="4" class="summary-label">Accepted</td>
                         ${standings.problems.map(problem => {
-                            const acceptedCount = standings.rows.filter(row => 
+                            const allRows = [...standings.rows, ...(standings.outOfCompetitionRows || [])];
+                            const acceptedCount = allRows.filter(row => 
                                 row.problemResults[standings.problems.indexOf(problem)].points > 0
                             ).length;
                             return `<td class="summary-count">${acceptedCount}</td>`;
@@ -453,7 +488,8 @@ function generateHTML(standings) {
                     <tr class="summary-row">
                         <td colspan="4" class="summary-label">Tried</td>
                         ${standings.problems.map(problem => {
-                            const triedCount = standings.rows.filter(row => {
+                            const allRows = [...standings.rows, ...(standings.outOfCompetitionRows || [])];
+                            const triedCount = allRows.filter(row => {
                                 const result = row.problemResults[standings.problems.indexOf(problem)];
                                 return result.points > 0 || result.rejectedAttemptCount > 0;
                             }).length;

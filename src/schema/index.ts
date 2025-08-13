@@ -115,5 +115,6 @@ export interface StandingsWithCustomPenalty {
   contest: Contest;
   problems: Problem[];
   rows: StandingsRowWithCustomPenalty[];
+  outOfCompetitionRows?: StandingsRowWithCustomPenalty[];
   firstSolvers?: { [problemIndex: string]: string };
 }

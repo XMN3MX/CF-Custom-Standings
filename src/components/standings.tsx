@@ -98,6 +98,11 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                             ? row.party.members[0]?.handle
                             : row.party.teamName ||
                               row.party.members[0]?.handle}
+                          {(row.party.participantType === "VIRTUAL" || row.party.participantType === "PRACTICE") && (
+                            <span className="ml-0.5 text-xs text-blue-600 relative -top-0.5">
+                              #
+                            </span>
+                          )}
                         </div>
                         {row.party.members[0]?.city && (
                           <div className="text-xs text-gray-500">
@@ -149,6 +154,112 @@ export function StandingsTable({ standings, isLoading }: StandingsTableProps) {
                   })}
                 </tr>
               ))}
+              
+              {/* Out of Competition Section */}
+              {standings.outOfCompetitionRows && standings.outOfCompetitionRows.map((row) => (
+                <tr
+                  key={`out-${row.party.contestId}-${row.party.members[0]?.handle}`}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 border-r border-gray-100">
+                    
+                  </td>
+                  <td className="px-4 py-3 border-r border-gray-100">
+                    <div className="flex items-center">
+                      <div className="ml-3">
+                        <div className="text-sm font-medium text-gray-900">
+                          {row.party.participantType === "CONTESTANT"
+                            ? row.party.members[0]?.handle
+                            : row.party.teamName ||
+                              row.party.members[0]?.handle}
+                          
+                        </div>
+                        {row.party.members[0]?.city && (
+                          <div className="text-xs text-gray-500">
+                            {row.party.members[0].city}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center font-semibold border-r border-gray-100">
+                    {row.solvedCount}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center font-mono border-r border-gray-100">
+                    
+                  </td>
+                  {row.problemResults.map((result, index) => {
+                    const rawWACount = result.rejectedAttemptCount || 0;
+                    const actualWACount =
+                      rawWACount > 0 ? Math.max(0, rawWACount - 1) : 0;
+
+                    return (
+                      <td
+                        key={index}
+                        className="px-3 py-3 text-center border-r border-gray-100"
+                      >
+                                                  {result.points > 0 ? (
+                            <div className="bg-green-600 text-white text-xs font-bold py-1 px-2 rounded">
+                              <div>
+                                {actualWACount === 0 ? '+' : '+' + (actualWACount + 1)}
+                              </div>
+                            </div>
+                        ) : actualWACount > 0 ? (
+                          <div className="bg-red-600 text-white text-xs font-bold py-1 px-2 rounded">
+                            <div>-{actualWACount}</div>
+                          </div>
+                        ) : (
+                          <div className="text-gray-400">-</div>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+              
+              {/* Accepted/Tried Summary Rows */}
+              <tr className="hover:bg-gray-50 transition-colors">
+                <td className="border-r border-gray-100"></td>
+                <td className="px-4 py-1 text-xs font-medium text-left border-r border-gray-100">
+                  <div className="ml-3">
+                    <div className="flex flex-col leading-tight">
+                      <span className="text-green-600">
+                        Accepted
+                      </span>
+                      <span className="text-gray-500">Tried</span>
+                    </div>
+                  </div>
+                </td>
+                <td className="border-r border-gray-100"></td>
+                <td className="border-r border-gray-100"></td>
+                {standings.problems.map((_, problemIndex) => {
+                  const allRows = [...standings.rows, ...(standings.outOfCompetitionRows || [])];
+                  const acceptedCount = allRows.filter(
+                    (row) => row.problemResults[problemIndex]?.points > 0
+                  ).length;
+                  const triedCount = allRows.filter(
+                    (row) =>
+                      (row.problemResults[problemIndex]?.rejectedAttemptCount ??
+                        0) > 0 ||
+                      (row.problemResults[problemIndex]?.points ?? 0) > 0
+                  ).length;
+                  return (
+                    <td
+                      key={problemIndex}
+                      className="px-3 py-1 text-center border-r border-gray-100"
+                    >
+                      <div className="flex flex-col text-xs leading-tight">
+                        <span className="text-green-600">
+                          {acceptedCount}
+                        </span>
+                        <span className="text-gray-500">
+                          {triedCount}
+                        </span>
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
             </tbody>
           </table>
         </div>
